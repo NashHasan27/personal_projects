@@ -1,0 +1,11 @@
+server:
+  port: 8085
+spring:
+  application:
+    name: policy-service
+
+eureka:
+  instance:
+    hostname: localhost
+    nonSecurePort: 8082
+

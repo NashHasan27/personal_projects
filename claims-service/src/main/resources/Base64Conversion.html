@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Base64 Encode/Decode Demo</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        textarea { width: 100%; height: 100px; }
+        button { margin-top: 10px; }
+    </style>
+</head>
+<body>
+
+<h2>File to Base64 Encoder</h2>
+<input type="file" id="fileInput" />
+<button id="encodeBtn">Encode to Base64</button>
+<textarea id="base64Output" placeholder="Base64 output will appear here"></textarea>
+
+<hr/>
+
+<h2>Base64 to File Decoder</h2>
+<textarea id="base64Input" placeholder="Paste base64 string here"></textarea>
+<button id="decodeBtn">Decode & Download File</button>
+
+<script>
+    class Base64FileHandler {
+      constructor(config) {
+        this.convertUrl = config.convertUrl; // e.g. '/convertDocs-base64'
+        this.decodeUrl = config.decodeUrl;   // e.g. '/decodeDocs-base64'
+
+        // Elements
+        this.fileInput = document.getElementById(config.fileInputId);
+        this.encodeBtn = document.getElementById(config.encodeBtnId);
+        this.base64Output = document.getElementById(config.base64OutputId);
+        this.base64Input = document.getElementById(config.base64InputId);
+        this.decodeBtn = document.getElementById(config.decodeBtnId);
+
+        // Bind events
+        this.encodeBtn.addEventListener('click', () => this.encodeFile());
+        this.decodeBtn.addEventListener('click', () => this.decodeBase64());
+      }
+
+      async encodeFile() {
+        const file = this.fileInput.files[0];
+        if (!file) {
+          alert('Please select a file to encode!');
+          return;
+        }
+
+        const formData = new FormData();
+        formData.append('file', file);
+
+        try {
+          const response = await fetch(this.convertUrl, {
+            method: 'POST',
+            body: formData
+          });
+
+          if (!response.ok) {
+            throw new Error('Failed to encode file. Status: ${response.status}, Message: ${text}');
+          }
+
+          const base64String = await response.text();
+          this.base64Output.value = base64String;
+        } catch (err) {
+          alert('Error: ' + err.message);
+        }
+      }
+
+      async decodeBase64() {
+        const base64String = this.base64Input.value.trim();
+        if (!base64String) {
+          alert('Please enter a base64 string to decode!');
+          return;
+        }
+
+        try {
+          const response = await fetch(this.decodeUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain' },
+            body: base64String
+          });
+
+          if (!response.ok) {
+            throw new Error('Failed to decode base64 string.');
+          }
+
+          const blob = await response.blob();
+
+          // Try to get filename from Content-Disposition header
+          const disposition = response.headers.get('Content-Disposition');
+          let filename = 'downloaded_file';
+          if (disposition && disposition.includes('filename=')) {
+            filename = disposition.split('filename=')[1].replace(/"/g, '');
+          }
+
+          // Create a temporary link to download or open the file
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = filename;
+
+          // For images, you can display inline by opening in new tab instead of download:
+          if (blob.type.startsWith('image/')) {
+            a.target = '_blank';
+            a.download = ''; // no download attribute to display inline
+          }
+
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+          URL.revokeObjectURL(url);
+
+        } catch (err) {
+          alert('Error: ' + err.message);
+        }
+      }
+    }
+
+    // Instantiate the handler on page load
+    window.addEventListener('DOMContentLoaded', () => {
+      new Base64FileHandler({
+        convertUrl: 'http://localhost:8081/v1/claim/convertDocs-base64',
+        decodeUrl: 'http://localhost:8081/v1/claim/decodeDocs-base64',
+        fileInputId: 'fileInput',
+        encodeBtnId: 'encodeBtn',
+        base64OutputId: 'base64Output',
+        base64InputId: 'base64Input',
+        decodeBtnId: 'decodeBtn'
+      });
+    });
+</script>
+</body>
+</html>

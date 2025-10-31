@@ -1,0 +1,9 @@
+#Application Port
+server:
+  port: 8081
+
+spring:
+  profiles:
+    active: claims-service
+  application:
+    name: claims-service

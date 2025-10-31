@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Submit Claim, Upload Documents, and Update Claim Amount</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        form {
+            max-width: 600px;
+            margin: auto;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            background-color: #f9f9f9;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+        input, textarea {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 16px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            padding: 8px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgb(0,0,0);
+            background-color: rgba(0,0,0,0.4);
+            padding-top: 60px;
+        }
+        .modal-content {
+            background-color: #fefefe;
+            margin: 5% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            border-radius: 8px;
+        }
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+        .close:hover,
+        .close:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        @media (max-width: 600px) {
+            form {
+                width: 100%;
+                padding: 10px;
+            }
+            input, textarea {
+                padding: 6px;
+            }
+            button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<h2>All Submitted Claims</h2>
+<button type="button" onclick="fetchClaims()">Refresh Claims</button>
+<table id="claimsTable">
+    <thead>
+    <tr>
+        <th>Claim ID</th>
+        <th>Policy ID</th>
+        <th>Claimant Name</th>
+        <th>Claim Date</th>
+        <th>Incident Date</th>
+        <th>Claim Amount</th>
+        <th>Status</th>
+    </tr>
+    </thead>
+    <tbody>
+    <!-- Claims will be dynamically inserted here -->
+    </tbody>
+</table>
+
+<h1>Submit a Claim and Upload Documents</h1>
+<form id="claimForm">
+    <label for="policyId">Policy ID:</label>
+    <input type="text" id="policyId" name="policyId" required>
+
+    <label for="claimantName">Claimant Name:</label>
+    <input type="text" id="claimantName" name="claimantName" required>
+
+    <label for="claimantContact">Claimant Contact:</label>
+    <input type="text" id="claimantContact" name="claimantContact" required>
+
+    <label for="dateOfClaim">Date of Claim:</label>
+    <input type="date" id="dateOfClaim" name="dateOfClaim" required>
+
+    <label for="incidentDate">Incident Date:</label>
+    <input type="date" id="incidentDate" name="incidentDate" required>
+
+    <label for="descriptionOfIncident">Description of Incident:</label>
+    <textarea id="descriptionOfIncident" name="descriptionOfIncident" required></textarea>
+
+    <label for="claimAmount">Claim Amount:</label>
+    <input type="number" id="claimAmount" name="claimAmount" step="0.01" required>
+
+    <button type="button" onclick="submitClaim()">Submit Claim</button>
+</form>
+
+<form id="uploadForm" style="margin-top: 20px;">
+    <label for="claimId">Claim ID:</label>
+    <input type="text" id="claimId" name="claimId" required>
+
+    <label for="documents">Select Documents:</label>
+    <input type="file" id="documents" name="documents" multiple required>
+
+    <button type="button" onclick="uploadDocuments()">Upload Documents</button>
+</form>
+
+<!-- Button to open the modal -->
+<button type="button" onclick="openModal()">Update Claim Amount</button>
+
+<!-- The Modal -->
+<div id="updateClaimModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeModal()">&times;</span>
+        <h2>Update Claim Amount</h2>
+        <form id="updateClaimForm">
+            <label for="updateClaimId">Claim ID:</label>
+            <input type="text" id="updateClaimId" name="updateClaimId" required>
+
+            <label for="newClaimAmount">New Claim Amount:</label>
+            <input type="number" id="newClaimAmount" name="newClaimAmount" step="0.01" required>
+
+            <button type="button" onclick="updateClaimAmount()">Update Amount</button>
+        </form>
+    </div>
+</div>
+
+<!-- Section for Viewing Documents -->
+<h2>Documents</h2>
+<table id="documentsTable">
+    <thead>
+    <tr>
+        <th>Document ID</th>
+        <th>Document Name</th>
+        <th>Document Type</th>
+        <th>Download</th> <!-- Column for download -->
+    </tr>
+    </thead>
+    <tbody>
+    <!-- Documents will be dynamically inserted here -->
+    </tbody>
+</table>
+
+<script>
+    function submitClaim() {
+        const claimData = {
+            policyId: document.getElementById('policyId').value,
+            claimantName: document.getElementById('claimantName').value,
+            claimantContact: document.getElementById('claimantContact').value,
+            dateOfClaim: new Date(document.getElementById('dateOfClaim').value).toISOString(),
+            incidentDate: new Date(document.getElementById('incidentDate').value).toISOString(),
+            descriptionOfIncident: document.getElementById('descriptionOfIncident').value,
+            claimAmount: parseFloat(document.getElementById('claimAmount').value),
+            status: 'SUBMITTED'
+        };
+
+        fetch('http://localhost:8081/v1/claim/submit', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(claimData)
+        })
+        .then(response => response.json())
+        .then(data => {
+            alert('Claim submitted successfully!');
+            console.log('Success:', data);
+            document.getElementById('claimId').value = data.claimId;
+            fetchClaims();
+        })
+        .catch((error) => {
+            console.error('Error:', error);
+            alert('Error submitting claim.');
+        });
+    }
+
+    function uploadDocuments() {
+        const claimId = document.getElementById('claimId').value;
+        const files = document.getElementById('documents').files;
+
+        if (!claimId || files.length === 0) {
+            alert('Please provide a claim ID and select at least one document.');
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('claimId', claimId);
+        for (let i = 0; i < files.length; i++) {
+            formData.append('documents', files[i]);
+        }
+
+        fetch(`http://localhost:8081/v1/claim/${claimId}/uploadDocument`, {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => {
+            return response.text().then(text => {
+                console.log('Response status:', response.status);
+                console.log('Response text:', text);
+                if (response.ok) {
+                    alert(text || 'Documents uploaded successfully!');
+                } else {
+                    console.error('Error response:', text);
+                    alert('Failed to upload documents: ' + text);
+                }
+            });
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error uploading documents.');
+        });
+    }
+
+    function updateClaimAmount() {
+        const claimId = document.getElementById('updateClaimId').value;
+        const claimAmount = parseFloat(document.getElementById('newClaimAmount').value);
+
+        if (!claimId || claimAmount <= 0) {
+            alert('Please enter a valid claim ID and claim amount.');
+            return;
+        }
+
+        const claimData = {
+            claimAmount: claimAmount
+        };
+
+        fetch(`http://localhost:8081/v1/claim/update-amount/${claimId}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(claimData)
+        })
+        .then(response => {
+            if (response.ok) {
+                return response.text().then(text => {
+                    alert(text);
+                    closeModal();
+                });
+            } else {
+                return response.text().then(text => {
+                    alert('Failed to update claim amount: ' + text);
+                });
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error updating claim amount.');
+        });
+    }
+
+    function fetchClaims() {
+        fetch('http://localhost:8081/v1/claim')
+        .then(response => response.json())
+        .then(data => {
+            const claimsTableBody = document.getElementById('claimsTable').getElementsByTagName('tbody')[0];
+            claimsTableBody.innerHTML = '';
+
+            data.forEach(claim => {
+                const row = claimsTableBody.insertRow();
+                row.insertCell(0).textContent = claim.claimId;
+                row.insertCell(1).textContent = claim.policyId;
+                row.insertCell(2).textContent = claim.claimantName;
+                row.insertCell(3).textContent = new Date(claim.dateOfClaim).toLocaleDateString();
+                row.insertCell(4).textContent = new Date(claim.incidentDate).toLocaleDateString();
+                row.insertCell(5).textContent = claim.claimAmount.toFixed(2);
+                row.insertCell(6).textContent = claim.status;
+            });
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error fetching claims.');
+        });
+    }
+
+    function viewDocuments() {
+        console.log('Fetching all documents');
+
+        fetch('http://localhost:8081/v1/claim/claimDocs')
+        .then(response => {
+            console.log('Response status:', response.status);
+            if (!response.ok) {
+                throw new Error(`Error: ${response.status} - ${response.statusText}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('Fetched documents:', data);
+            const documentsTable = document.getElementById('documentsTable');
+            const documentsTableBody = documentsTable.getElementsByTagName('tbody')[0];
+            documentsTableBody.innerHTML = '';
+
+            if (data.length > 0) {
+                documentsTable.style.display = 'table';
+                data.forEach(document => {
+                    const row = documentsTableBody.insertRow();
+                    row.insertCell(0).textContent = document.documentId;
+                    row.insertCell(1).textContent = document.documentName;
+                    row.insertCell(2).textContent = document.documentType;
+
+                    // Create a download button
+                    const downloadCell = row.insertCell(3);
+                    const downloadButton = document.createElement('button');
+                    downloadButton.textContent = 'Download';
+                    downloadButton.onclick = () => downloadDocument(document.documentPath);
+                    downloadCell.appendChild(downloadButton);
+                });
+            } else {
+                documentsTable.style.display = 'none';
+                alert('No documents found.');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert(error.message || 'Error fetching documents.');
+        });
+    }
+
+    function downloadDocument(documentPath) {
+        fetch(`http://localhost:8081/v1/files/${encodeURIComponent(documentPath)}`)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Failed to download document.');
+            }
+            return response.blob();
+        })
+        .then(blob => {
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = documentPath.split('\\').pop(); // Extract file name from path
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert(error.message || 'Error downloading document.');
+        });
+    }
+
+    function openModal() {
+        document.getElementById('updateClaimModal').style.display = 'block';
+    }
+
+    function closeModal() {
+        document.getElementById('updateClaimModal').style.display = 'none';
+    }
+
+    window.onload = function() {
+        fetchClaims();
+        viewDocuments(); // Automatically fetch and display documents on page load
+    };
+</script>
+
+</body>
+</html>

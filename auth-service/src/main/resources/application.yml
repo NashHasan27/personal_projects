@@ -1,0 +1,31 @@
+#Application Port
+server:
+  port: 8083
+
+spring:
+  profiles:
+    active: auth-service
+  application:
+    name: auth-service
+
+eureka:
+  client:
+    healthcheck:
+      enabled: false
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+    register-with-eureka: true
+    fetch-registry: true
+    region: us-east-1
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: always
+  health:
+    db:
+      enabled: false  # Important if you're not using a database yet

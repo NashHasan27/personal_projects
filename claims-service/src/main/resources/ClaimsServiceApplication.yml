@@ -1,0 +1,18 @@
+
+#Swagger extended configuration
+openapi: 3.1.0
+info:
+  title: Claims Service API
+  version: v1
+servers:
+  - url: 'http://localhost:8082'
+    description: Updated server url configuration
+paths: {}
+components: {}
+
+#Prometheus & Grafana Monitoring
+management:
+  endpoints:
+    web:
+      exposure:
+        include: [ "prometheus","health"]

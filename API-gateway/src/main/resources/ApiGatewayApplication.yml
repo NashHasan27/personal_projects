@@ -1,0 +1,23 @@
+springdoc:
+  api-docs:
+    path: gateway/v3/api-docs # Path where OpenAPI docs are available
+  swagger-ui:
+    path: gateway/swagger-ui.html # Path to access Swagger UI
+    operationsSorter: method # Sort operations by method
+    tagsSorter: name # Sort tags by name
+    disable-swagger-default-url: true # Disable default URL if needed
+
+server:
+  port: 8081 # The port on which the API Gateway will run
+
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://localhost:8761/eureka # URL of the Eureka server
+
+logging:
+  level:
+    root: INFO
+    org.springframework: INFO
+    com.netflix: INFO
+

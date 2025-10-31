@@ -1,0 +1,26 @@
+Downloading Document Agent Contract
+
+#1 Do some verification process
+--Select Query to ensure which document its mapped to by Candidate ID -- 
+SELECT * FROM CANDIDATESUPPORTINGDOCUMENT c 
+WHERE c.CANDIDATEID =[-- Dynamic candidate ID--]
+AND c.SUPPORTINGDOCUMENTID 
+IN (SELECT s.FILENETID FROM SUPPORTINGDOCUMENT s WHERE NAME LIKE '%FINAL AGREEMENT%')
+
+#2 Post verification process
+--Get the Document ID from the table and hit through postman--
+
+#3 Postman process
+--Change the parameter to the Document ID --
+curl --location 'https://internal-microservice.acl.prod.aws.allianz.co.id/v2/acl/api/AclDms/getSingleDocumentBO/idd_F8D912D8-F0AD-428E-877D-A59173B3E341?x-auth-token=2QccpWxQBoyMxz12e1dMMf4lsPbXQYiF'
+
+--Hit Send & Copy the String Value--
+
+#4 Decoding Process
+--Proceed to Base64guru website--
+https://base64.guru/converter/decode/pdf
+
+--Paste the string value and PDF will be generated--
+
+#5 Final Process
+To download the downloaded PDF document

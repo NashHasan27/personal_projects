@@ -1,0 +1,27 @@
+#API Gateway Application Port
+server:
+  port: 8080
+
+spring:
+  profiles:
+    active: API-gateway
+  application:
+    name: API-gateway
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+    register-with-eureka: true
+    fetch-registry: true
+
+#Actuator Endpoints
+management:
+  prometheus:
+    endpoints:
+      web:
+        exposure:
+          include: health,info,metrics,prometheus
+    metrics:
+      export:
+        enabled: true
