@@ -11,6 +11,7 @@ public interface CustomerService {
 
     List<CustomerServiceModel> getAllCustomer();
     CustomerServiceModel submitCustomer(CustomerServiceModel customerServiceModel);
+    List<CustomerServiceModel> getTop5CustomerBy(String by);
     boolean deleteCustomerById(Long id);
     CustomerProfilePhoto uploadProfilePhoto(Long id, MultipartFile profilePic) throws Exception;
     CustomerProfilePhoto updateProfilePhoto(Long id, MultipartFile updateProfilePic) throws Exception;
@@ -21,4 +22,5 @@ public interface CustomerService {
     String convertDocsToStringBase64Json(MultipartFile file);
     CustomerEducation submitCustomerEducation(Long id,CustomerEducation customerEducation) throws Exception;
     CustomerEducation updateCustomerEducation(Long id,CustomerEducation customerEducation) throws Exception;
+    List<CustomerEducation> getTop3EducationBy(String by);
 }

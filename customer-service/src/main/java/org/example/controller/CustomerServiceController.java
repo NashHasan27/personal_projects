@@ -50,6 +50,18 @@ public class CustomerServiceController {
         return ResponseEntity.ok().body(customerList);
     }
 
+    @GetMapping("/customer-education/by")
+    public ResponseEntity<List<CustomerEducation>> getTop3CustEducation(@RequestParam("by") String by){
+        List<CustomerEducation> top3CustEdu = customerService.getTop3EducationBy(by);
+        return ResponseEntity.ok().body(top3CustEdu);
+    }
+
+    @GetMapping("/customer-list/by")
+    public ResponseEntity<List<CustomerServiceModel>> getTop5CustomerList(@RequestParam("by") String by){
+        List<CustomerServiceModel> top5CustomerList = customerService.getTop5CustomerBy(by);
+        return ResponseEntity.ok().body(top5CustomerList);
+    }
+
     @PostMapping("/submitCustomer")
     public ResponseEntity<CustomerServiceModel> submitCustomer(@RequestBody CustomerServiceModel customerServiceModel){
         CustomerServiceModel customerServiceAppl = customerService.submitCustomer(customerServiceModel);

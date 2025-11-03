@@ -16,6 +16,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -56,6 +60,27 @@ public class CustomerServiceImpl implements CustomerService {
     public CustomerServiceModel submitCustomer(CustomerServiceModel customerServiceModel) {
         //throw new RuntimeException("Simulated Max Attempts Retry failure");
         return customerRepository.save(customerServiceModel);
+    }
+
+    @Override
+    public List<CustomerServiceModel> getTop5CustomerBy(String by) {
+        if (by == null || by.isBlank()) {
+            by = "firstname"; // default field
+        }
+
+        // Map possible 'by' values to entity field names
+        String sortField = switch (by.toLowerCase()) {
+            case "firstname" -> "firstName";
+            case "lastname" -> "lastName";
+            case "email" -> "email";
+            case "phone", "phonenumber" -> "phoneNumber";
+            case "address" -> "address";
+            default -> throw new IllegalArgumentException("Invalid 'by' parameter: " + by);
+        };
+
+        // Get top 3 sorted descending (sorting by Ascending or Descending)
+        Pageable topFive = PageRequest.of(0, 5, Sort.by(Sort.Direction.DESC, sortField));
+        return customerRepository.findAll(topFive).getContent();
     }
 
     @Override
@@ -302,6 +327,24 @@ public class CustomerServiceImpl implements CustomerService {
                                                                 customerEducation.getEducationDescription());
 
         return customerEducationInfo;
+    }
+
+    @Override
+    public List<CustomerEducation> getTop3EducationBy(String by) {
+
+        // Map possible 'by' values to entity field names
+        String sortField = switch (by.toLowerCase()) {
+            case "educationname" -> "educationName";
+            case "startdate" -> "startDate";
+            case "enddate" -> "endDate";
+            case "status", "educationstatus" -> "educationStatus";
+            case "description", "educationdescription" -> "educationDescription";
+            default -> throw new IllegalArgumentException("Invalid 'by' parameter: " + by);
+        };
+
+        // Get top 3 sorted descending (sorting by Ascending or Descending)
+        Pageable topThree = PageRequest.of(0, 3, Sort.by(Sort.Direction.DESC, sortField));
+        return customerEducationRepository.findAll(topThree).getContent();
     }
 
     private static CustomerEducation getCustomerEducation(Long id, CustomerEducation customerEducation) {
