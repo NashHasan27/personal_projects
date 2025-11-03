@@ -19,12 +19,17 @@ public interface CustomerEducationRepository extends JpaRepository<CustomerEduca
             "c.endDate = :endDate, " +
             "c.educationStatus = :educationStatus, " +
             "c.educationDescription = :educationDescription " +
-            "where c.customerId = :customerId")
-    void updateCustomerEducation(@Param("customerId") Long customerId,
+            "where c.customerId = :customerId " +
+            "and c.id = :id")
+    void updateCustomerEducation(@Param("id") Long id,
+                                 @Param("customerId") Long customerId,
                                  @Param("educationName") String educationName,
                                  @Param("startDate") String startDate,
                                  @Param("endDate") String endDate,
                                  @Param("educationStatus") String educationStatus,
                                  @Param("educationDescription") String educationDescription);
+
+    @Query("SELECT c.id FROM CustomerEducation c where c.customerId = :customerId")
+    Long getEducationId(@Param("customerId") Long customerId);
 
 }

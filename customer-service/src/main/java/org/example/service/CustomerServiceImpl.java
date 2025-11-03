@@ -289,8 +289,12 @@ public class CustomerServiceImpl implements CustomerService {
         //Implementation of the business logic
         CustomerEducation customerEducationInfo = getCustomerEducation(id, customerEducation);
 
+        Long educationId = customerEducationRepository.getEducationId(id);
+        logger.info("The retrieved id is {}",educationId);
+
         //Invoking the update method handled at the repository class
-            customerEducationRepository.updateCustomerEducation(id,
+            customerEducationRepository.updateCustomerEducation(educationId,
+                                                                id,
                                                                 customerEducation.getEducationName(),
                                                                 customerEducation.getStartDate(),
                                                                 customerEducation.getEndDate(),
