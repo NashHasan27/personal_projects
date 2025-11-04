@@ -74,10 +74,10 @@ public class CustomerServiceController {
         boolean deleteCustById = customerService.deleteCustomerById(id);
 
         if(deleteCustById) {
-            return ResponseEntity.ok("Successfully Removed Customer!");
+            return new ResponseEntity<>("Successfully Removed Customer!",HttpStatus.OK);
         }
         else{
-            return ResponseEntity.ok("Unsuccessful in Removing Customer");
+            return new ResponseEntity<>("Unsuccessful in Removing Customer",HttpStatus.BAD_REQUEST);
         }
     }
 

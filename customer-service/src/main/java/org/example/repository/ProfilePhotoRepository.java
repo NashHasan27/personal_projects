@@ -14,8 +14,8 @@ public interface ProfilePhotoRepository extends JpaRepository<CustomerProfilePho
 
     @Transactional
     @Modifying
-    @Query("DELETE CustomerProfilePhoto c where c.id = :fileId")
-    void deleteProfilePhoto(@Param("fileId") Long fileId);
+    @Query("DELETE CustomerProfilePhoto c where c.customer.id = :customerId")
+    void deleteProfilePhoto(@Param("customerId") Long customerId);
 
 
     @Query("SELECT c.id FROM CustomerProfilePhoto c where c.customer.id = :customerId and c.fileName LIKE %:fileName%")

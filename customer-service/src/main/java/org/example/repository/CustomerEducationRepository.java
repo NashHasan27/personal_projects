@@ -32,4 +32,9 @@ public interface CustomerEducationRepository extends JpaRepository<CustomerEduca
     @Query("SELECT c.id FROM CustomerEducation c where c.customerId = :customerId")
     Long getEducationId(@Param("customerId") Long customerId);
 
+    @Transactional
+    @Modifying
+    @Query("DELETE CustomerEducation c where c.customerId = :customerId")
+    void deleteCustomerEducation(@Param("customerId") Long customerId);
+
 }

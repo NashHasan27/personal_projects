@@ -92,7 +92,11 @@ public class CustomerServiceImpl implements CustomerService {
             profilePhotoRepository.deleteProfilePhoto(id);
             logger.info("Removed from CUSTOMER_PROFILE table, ID {}", id);
 
-            //#2 Step to delete and remove from the main table CUSTOMER
+            //#2 Step to delete from dependent table CUSTOMER_EDUCATION
+            customerEducationRepository.deleteCustomerEducation(id);
+            logger.info("Removed from CUSTOMER_EDUCATION table, ID {}", id);
+
+            //#3 Step to delete and remove from the main table CUSTOMER
             customerRepository.deleteCustomer(id);
             logger.info("Removed from CUSTOMER table, ID {}", id);
 
