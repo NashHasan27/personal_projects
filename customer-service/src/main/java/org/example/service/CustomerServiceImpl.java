@@ -6,6 +6,7 @@ import io.github.resilience4j.retry.annotation.Retry;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.AllArgsConstructor;
 import org.example.client.ClaimClient;
+import org.example.exception.CustomerNotFoundException;
 import org.example.model.CustomerEducation;
 import org.example.model.CustomerProfilePhoto;
 import org.example.model.CustomerServiceModel;
@@ -88,24 +89,35 @@ public class CustomerServiceImpl implements CustomerService {
     @CacheEvict(value="customer",key="#id")
     public boolean deleteCustomerById(Long id) {
         try {
-            //#1 Step to delete the dependent table CUSTOMER_PROFILE
-            profilePhotoRepository.deleteProfilePhoto(id);
-            logger.info("Removed from CUSTOMER_PROFILE table, ID {}", id);
+            // Check if the customer exists to validate prior to executing the delete operation
+            CustomerServiceModel customerServiceModel = customerRepository.findById(id)
+                    .orElseThrow(() -> new CustomerNotFoundException("Customer with ID " + id + " not found"));
 
-            //#2 Step to delete from dependent table CUSTOMER_EDUCATION
-            customerEducationRepository.deleteCustomerEducation(id);
-            logger.info("Removed from CUSTOMER_EDUCATION table, ID {}", id);
+            try {
+                //#1 Step to delete the dependent table CUSTOMER_PROFILE
+                profilePhotoRepository.deleteProfilePhoto(id);
+                logger.info("Removed from CUSTOMER_PROFILE table, ID {}", id);
 
-            //#3 Step to delete and remove from the main table CUSTOMER
-            customerRepository.deleteCustomer(id);
-            logger.info("Removed from CUSTOMER table, ID {}", id);
+                //#2 Step to delete from dependent table CUSTOMER_EDUCATION
+                customerEducationRepository.deleteCustomerEducation(id);
+                logger.info("Removed from CUSTOMER_EDUCATION table, ID {}", id);
 
-            logger.info("Successfully deleted customer with ID {}", id);
-            return true;
-        } catch (Exception e) {
-            // Log the exception if necessary
-            System.err.println("Error deleting customer with ID " + id + ": " + e.getMessage());
-            return false;
+                //#3 Step to delete and remove from the main table CUSTOMER
+                customerRepository.deleteCustomer(id);
+                logger.info("Removed from CUSTOMER table, ID {}", id);
+
+                logger.info("Successfully deleted customer with ID {}", id);
+                return true;
+
+            } catch (Exception e) {
+                // Log the exception if necessary
+                System.err.println("Error deleting customer with ID " + id + ": " + e.getMessage());
+                return false;
+            }
+
+        } catch (CustomerNotFoundException e) {
+            logger.error("Customer not found: {}", e.getMessage());
+            throw e; // Re-throw the exception to indicate the operation cannot proceed
         }
     }
 
@@ -113,7 +125,7 @@ public class CustomerServiceImpl implements CustomerService {
     @Transactional
     public CustomerProfilePhoto uploadProfilePhoto(Long id,MultipartFile profilePic) throws Exception {
 
-        //Step 1:Ensure and pre-checking whether the claim ID really exists
+        //Step 1:Ensure and pre-checking whether the customer ID really exists
         CustomerServiceModel customerServiceModel = customerRepository.findById(id).orElseThrow(() -> new Exception("Customer not found"));
 
         //Step 2:Ensure and pre-checking the storage directory exists
