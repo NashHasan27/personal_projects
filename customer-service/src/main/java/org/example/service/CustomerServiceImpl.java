@@ -64,6 +64,24 @@ public class CustomerServiceImpl implements CustomerService {
     }
 
     @Override
+    public CustomerServiceModel getCustomerById(Long id) {
+        logger.info("Attempting to retrieve customer with ID {}", id);
+        try {
+            CustomerServiceModel customer = customerRepository.findById(id)
+                    .orElseThrow(() -> new CustomerNotFoundException("Customer with ID " + id + " not found"));
+
+            logger.info("Successfully retrieved customer with ID {}", id);
+            return customer;
+        } catch (CustomerNotFoundException e) {
+            logger.error("Customer not found and unable to be retrieved: {}", e.getMessage());
+            throw e; // Re-throw the exception to indicate the operation cannot proceed
+        } catch (Exception e) {
+            logger.error("Unexpected error occurred while retrieving customer with ID {}: {}", id, e.getMessage());
+            throw new RuntimeException("Error retrieving customer", e);
+        }
+    }
+
+    @Override
     public List<CustomerServiceModel> getTop5CustomerBy(String by) {
         if (by == null || by.isBlank()) {
             by = "firstname"; // default field
@@ -80,7 +98,7 @@ public class CustomerServiceImpl implements CustomerService {
         };
 
         // Get top 3 sorted descending (sorting by Ascending or Descending)
-        Pageable topFive = PageRequest.of(0, 5, Sort.by(Sort.Direction.DESC, sortField));
+        Pageable topFive = PageRequest.of(0, 5, Sort.by(Sort.Direction.ASC, sortField));
         return customerRepository.findAll(topFive).getContent();
     }
 

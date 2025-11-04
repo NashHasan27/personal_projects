@@ -11,6 +11,7 @@ public interface CustomerService {
 
     List<CustomerServiceModel> getAllCustomer();
     CustomerServiceModel submitCustomer(CustomerServiceModel customerServiceModel);
+    CustomerServiceModel getCustomerById(Long id);
     List<CustomerServiceModel> getTop5CustomerBy(String by);
     boolean deleteCustomerById(Long id);
     CustomerProfilePhoto uploadProfilePhoto(Long id, MultipartFile profilePic) throws Exception;
