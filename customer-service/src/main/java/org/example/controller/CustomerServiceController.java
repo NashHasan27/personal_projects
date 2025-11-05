@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.OpenAPIDefinition;
 import io.swagger.v3.oas.annotations.info.Info;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.extern.slf4j.Slf4j;
+import org.example.dto.CustomerResponse;
 import org.example.exception.CustomerNotFoundException;
 import org.example.model.CustomerEducation;
 import org.example.model.CustomerProfilePhoto;
@@ -49,6 +50,23 @@ public class CustomerServiceController {
     public ResponseEntity<List<CustomerServiceModel>> getAllCustomer(){
         List<CustomerServiceModel> customerList = customerService.getAllCustomer();
         return ResponseEntity.ok().body(customerList);
+    }
+
+    @GetMapping("/customer-response")
+    public ResponseEntity<CustomerResponse> getCustomerResponse(@RequestParam("id") Long id){
+        logger.info("CustomerResponse:: Received request to retrieve customer with ID {}", id);
+
+        try {
+            CustomerResponse response = customerService.getCustomerResponseById(id);
+            logger.info("CustomerResponse:: Successfully retrieved customer with ID {}", id);
+            return ResponseEntity.ok().body(response);
+        } catch (CustomerNotFoundException e) {
+            logger.error("CustomerResponse:: Customer not found for ID {}: {}", id, e.getMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        } catch (Exception e) {
+            logger.error("CustomerResponse:: Error retrieving customer with ID {}: {}", id, e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
     }
 
     @GetMapping("/customer-id")

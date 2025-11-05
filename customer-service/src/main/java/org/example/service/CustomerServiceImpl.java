@@ -6,6 +6,7 @@ import io.github.resilience4j.retry.annotation.Retry;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.AllArgsConstructor;
 import org.example.client.ClaimClient;
+import org.example.dto.CustomerResponse;
 import org.example.exception.CustomerNotFoundException;
 import org.example.model.CustomerEducation;
 import org.example.model.CustomerProfilePhoto;
@@ -67,6 +68,7 @@ public class CustomerServiceImpl implements CustomerService {
     public CustomerServiceModel getCustomerById(Long id) {
         logger.info("Attempting to retrieve customer with ID {}", id);
         try {
+                //Invoking a built-in method library findById from JpaRepository class
             CustomerServiceModel customer = customerRepository.findById(id)
                     .orElseThrow(() -> new CustomerNotFoundException("Customer with ID " + id + " not found"));
 
@@ -333,14 +335,29 @@ public class CustomerServiceImpl implements CustomerService {
 
     @Override
     public CustomerEducation submitCustomerEducation(Long id,CustomerEducation customerEducation) throws Exception {
-        //Step 1:Ensure and pre-checking whether the claim ID really exists
-        //CustomerServiceModel customerServiceModel = customerRepository.findById(id).orElseThrow(() -> new Exception("Customer not found"));
+        logger.info("Submitting education details for customer with ID {}",id);
 
-        //Step 2: Assigning the data/values retrieved from the Request Body by the user
+        // Step 1: Validate input data
+        if (customerEducation == null) {
+            throw new IllegalArgumentException("Customer education details cannot be null");
+        }
+
+        // Step 2: Check if customer exists
+        CustomerServiceModel customer = customerRepository.findById(id)
+                .orElseThrow(() -> new CustomerNotFoundException("Customer with ID " + id + " not found"));
+
+        //Step 3: Assigning the data/values retrieved from the Request Body by the user
         CustomerEducation customerEducationInfo = getCustomerEducation(id, customerEducation);
 
-        //Step 3: Saving into DB and returning the data
-        return customerEducationRepository.save(customerEducationInfo);
+        try {
+            // Step 4: Saving into DB and returning the data
+            CustomerEducation savedEducation = customerEducationRepository.save(customerEducationInfo);
+            logger.info("Successfully saved education details for customer with ID {}", id);
+            return savedEducation;
+        } catch (Exception e) {
+            logger.error("Error saving education details for customer with ID {}: {}", id, e.getMessage());
+            throw new RuntimeException("Failed to save customer education details", e);
+        }
     }
 
     @Override
@@ -379,6 +396,18 @@ public class CustomerServiceImpl implements CustomerService {
         // Get top 3 sorted descending (sorting by Ascending or Descending)
         Pageable topThree = PageRequest.of(0, 3, Sort.by(Sort.Direction.DESC, sortField));
         return customerEducationRepository.findAll(topThree).getContent();
+    }
+
+    @Override
+    public CustomerResponse getCustomerResponseById(Long id) {
+        logger.info("Retrieving customer with ID {}", id);
+
+        CustomerServiceModel customerById = customerRepository.findById(id)
+                .orElseThrow(() -> new CustomerNotFoundException("Customer with ID " + id + " not found"));
+
+        CustomerServiceModel customerServiceModelResponse = new CustomerServiceModel(customerById.getId(), customerById.getFirstName(),customerById.getLastName(),customerById.getEmail(),customerById.getPhoneNumber(),customerById.getAddress());
+
+        return new CustomerResponse(customerServiceModelResponse);
     }
 
     private static CustomerEducation getCustomerEducation(Long id, CustomerEducation customerEducation) {

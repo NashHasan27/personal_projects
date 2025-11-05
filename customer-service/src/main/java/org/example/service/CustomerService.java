@@ -1,5 +1,6 @@
 package org.example.service;
 
+import org.example.dto.CustomerResponse;
 import org.example.model.CustomerEducation;
 import org.example.model.CustomerProfilePhoto;
 import org.example.model.CustomerServiceModel;
@@ -24,4 +25,5 @@ public interface CustomerService {
     CustomerEducation submitCustomerEducation(Long id,CustomerEducation customerEducation) throws Exception;
     CustomerEducation updateCustomerEducation(Long id,CustomerEducation customerEducation) throws Exception;
     List<CustomerEducation> getTop3EducationBy(String by);
+    CustomerResponse getCustomerResponseById(Long id);
 }
