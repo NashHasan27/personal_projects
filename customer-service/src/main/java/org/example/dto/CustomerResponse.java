@@ -7,6 +7,8 @@ import lombok.Setter;
 import org.example.model.CustomerProfilePhoto;
 import org.example.model.CustomerServiceModel;
 
+import java.util.List;
+
 @Getter
 @Setter
 @AllArgsConstructor
@@ -14,5 +16,5 @@ import org.example.model.CustomerServiceModel;
 public class CustomerResponse {
 
     private CustomerServiceModel customer;
-    private CustomerProfilePhoto profile;
+    private List<CustomerProfilePhoto> profile;
 }

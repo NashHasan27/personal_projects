@@ -407,10 +407,10 @@ public class CustomerServiceImpl implements CustomerService {
                 .orElseThrow(() -> new CustomerNotFoundException("Customer with ID " + id + " not found"));
 
         //Step 2: Retrieving & Checking the existence of customer's profile photo by ID
-        CustomerProfilePhoto customerProfilePhotoById = profilePhotoRepository.getProfilePhotoByCustomerId(id);
+        List<CustomerProfilePhoto> customerProfilePhotoByIdList = profilePhotoRepository.getProfilePhotoByCustomerId(id);
 
         //Step 3:Assigning into the CustomerResponse constructor and return
-        return new CustomerResponse(customerById,customerProfilePhotoById);
+        return new CustomerResponse(customerById,customerProfilePhotoByIdList);
     }
 
     private static CustomerEducation getCustomerEducation(Long id, CustomerEducation customerEducation) {

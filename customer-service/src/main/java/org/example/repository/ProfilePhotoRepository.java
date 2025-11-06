@@ -8,6 +8,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 public interface ProfilePhotoRepository extends JpaRepository<CustomerProfilePhoto,Long> {
 
@@ -25,7 +26,7 @@ public interface ProfilePhotoRepository extends JpaRepository<CustomerProfilePho
     boolean existsByCustomerId(@Param("customerId") Long customerId);
 
     @Query("SELECT c FROM CustomerProfilePhoto c where c.customer.id = :customerId")
-    CustomerProfilePhoto getProfilePhotoByCustomerId(@Param("customerId") Long customerId);
+    List<CustomerProfilePhoto> getProfilePhotoByCustomerId(@Param("customerId") Long customerId);
 
     @Transactional
     @Modifying
