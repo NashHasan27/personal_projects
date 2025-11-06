@@ -1,7 +1,6 @@
 package org.example.repository;
 
 import org.example.model.CustomerProfilePhoto;
-import org.example.model.CustomerServiceModel;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -25,8 +24,8 @@ public interface ProfilePhotoRepository extends JpaRepository<CustomerProfilePho
     @Query("SELECT COUNT(c) > 0 FROM CustomerProfilePhoto c WHERE c.customer.id = :customerId")
     boolean existsByCustomerId(@Param("customerId") Long customerId);
 
-    @Query("SELECT c.customer FROM CustomerProfilePhoto c where c.customer.id = :customerId")
-    CustomerServiceModel getCustomerIdForMultiUpload(@Param("customerId") Long customerId);
+    @Query("SELECT c FROM CustomerProfilePhoto c where c.customer.id = :customerId")
+    CustomerProfilePhoto getProfilePhotoByCustomerId(@Param("customerId") Long customerId);
 
     @Transactional
     @Modifying

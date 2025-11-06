@@ -402,12 +402,15 @@ public class CustomerServiceImpl implements CustomerService {
     public CustomerResponse getCustomerResponseById(Long id) {
         logger.info("Retrieving customer with ID {}", id);
 
+        //Step 1: Retrieving & Checking the existence of customer by ID
         CustomerServiceModel customerById = customerRepository.findById(id)
                 .orElseThrow(() -> new CustomerNotFoundException("Customer with ID " + id + " not found"));
 
-        CustomerServiceModel customerServiceModelResponse = new CustomerServiceModel(customerById.getId(), customerById.getFirstName(),customerById.getLastName(),customerById.getEmail(),customerById.getPhoneNumber(),customerById.getAddress());
+        //Step 2: Retrieving & Checking the existence of customer's profile photo by ID
+        CustomerProfilePhoto customerProfilePhotoById = profilePhotoRepository.getProfilePhotoByCustomerId(id);
 
-        return new CustomerResponse(customerServiceModelResponse);
+        //Step 3:Assigning into the CustomerResponse constructor and return
+        return new CustomerResponse(customerById,customerProfilePhotoById);
     }
 
     private static CustomerEducation getCustomerEducation(Long id, CustomerEducation customerEducation) {

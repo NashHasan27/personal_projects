@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.example.model.CustomerProfilePhoto;
 import org.example.model.CustomerServiceModel;
 
 @Getter
@@ -12,5 +13,6 @@ import org.example.model.CustomerServiceModel;
 @NoArgsConstructor
 public class CustomerResponse {
 
-    private CustomerServiceModel customerServiceModel;
+    private CustomerServiceModel customer;
+    private CustomerProfilePhoto profile;
 }
