@@ -3,11 +3,14 @@ package org.example.service;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
 import io.github.resilience4j.retry.annotation.Retry;
+import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.persistence.StoredProcedureQuery;
 import lombok.AllArgsConstructor;
 import org.example.client.ClaimClient;
 import org.example.dto.CustomerResponse;
 import org.example.exception.CustomerNotFoundException;
+import org.example.exception.FeignException;
 import org.example.model.CustomerEducation;
 import org.example.model.CustomerProfilePhoto;
 import org.example.model.CustomerServiceModel;
@@ -16,9 +19,9 @@ import org.example.repository.CustomerRepository;
 import org.example.repository.ProfilePhotoRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -47,6 +50,9 @@ public class CustomerServiceImpl implements CustomerService {
     private final ProfilePhotoRepository profilePhotoRepository;
     private final CustomerEducationRepository customerEducationRepository;
     private final ClaimClient claimClient;
+
+    @Autowired
+    private EntityManager entityManager;
 
     @Override
     @Cacheable(value = "customer")
@@ -81,6 +87,61 @@ public class CustomerServiceImpl implements CustomerService {
             logger.error("Unexpected error occurred while retrieving customer with ID {}: {}", id, e.getMessage());
             throw new RuntimeException("Error retrieving customer", e);
         }
+    }
+
+    @Override
+    public String feignExceptionProg(String feignName) throws FeignException {
+        try {
+            if ("test".equals(feignName)) {
+                throw new FeignException(claimClient.getClass().getSimpleName(), "AZ300", null);
+            }
+            return feignName;
+        } catch (FeignException ex) {
+            // Log the exception details
+            logger.error("FeignException occurred: {}", ex.getMessage(), ex);
+
+            // Return a meaningful message to the caller
+            return "An error occurred while processing your request: " + ex.getMessage();
+        }
+    }
+
+    //Invoking Stored Procedure from DB -> (SIMPLE_PROCEDURE) that performs a simple output printing
+    @Override
+    @Transactional
+    public String callSimpleProcedure(String input) {
+
+        StoredProcedureQuery storedProcedureQuery = entityManager.createStoredProcedureQuery("SIMPLE_PROCEDURE");
+        storedProcedureQuery.registerStoredProcedureParameter(1, String.class,jakarta.persistence.ParameterMode.IN);
+        storedProcedureQuery.setParameter(1, input);
+
+        storedProcedureQuery.execute();
+
+        return (String) storedProcedureQuery.getSingleResult();
+    }
+
+    //Invoking Stored Procedure from DB -> (INSERT_CUSTOMER) that performs an insert transaction into CUSTOMER table
+    @Override
+    @Transactional
+    public void insertCustomer(String firstName, String lastName, String email, String phoneNumber, String address) {
+       try {
+            StoredProcedureQuery storedProcedureQuery = entityManager.createNamedStoredProcedureQuery("InsertCustomerProcedure");
+            storedProcedureQuery.setParameter("firstName", firstName);
+            storedProcedureQuery.setParameter("lastName", lastName);
+            storedProcedureQuery.setParameter("email", email);
+            storedProcedureQuery.setParameter("phoneNumber", phoneNumber);
+            storedProcedureQuery.setParameter("address", address);
+
+            storedProcedureQuery.execute();
+        } catch (Exception e) {
+            e.printStackTrace();
+            // Log the exception details
+        }
+    }
+
+    @Override
+    public List<CustomerServiceModel> callCustomerProcedure() {
+        StoredProcedureQuery storedProcedureQuery = entityManager.createNamedStoredProcedureQuery("getAllCustomers");
+        return storedProcedureQuery.getResultList();
     }
 
     @Override

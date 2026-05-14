@@ -2,7 +2,10 @@ package org.example.controller;
 
 
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.info.Info;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import org.example.model.Claim;
 import org.example.model.CustomerServiceModel;
 import org.example.model.Document;
@@ -16,7 +19,8 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.Operation;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -45,6 +49,7 @@ public class ClaimController {
 
     @GetMapping("/register")
     public ResponseEntity<String> registerClaimService(){
+        logger.debug("Registering the Claim Service");
         return ResponseEntity.ok().body("Claim Service Registered!");
     }
 
@@ -109,10 +114,24 @@ public class ClaimController {
         return ResponseEntity.ok(submittedClaim);
     }
 
+    @Operation(summary = "To Upload & Submit Claim Documents", description = "API to upload and submit claim documents")
+    @ApiResponses(
+            value = {
+                    @ApiResponse(responseCode = "200", description = "Upload Success.<br/>"),
+                    @ApiResponse(responseCode = "204", description = "Document Failed to Upload.<br/>"),
+                    @ApiResponse(responseCode = "500", description = "Internal Server Error"),
+                    @ApiResponse(responseCode = "404", description = "Generic Error")
+                    })
     @PostMapping("/uploadDocuments/{claimId}")
-    public ResponseEntity<List<Document>> uploadClaimDocument(@PathVariable("claimId") Long claimId,
-                                                      @RequestParam("documents") List<MultipartFile> documents) {
-
+    public ResponseEntity<List<Document>> uploadClaimDocument(
+            @Parameter(
+                    description = "claimID.",
+                    required = true,
+                    example = "Nash@01") @PathVariable("claimId") Long claimId,
+            @Parameter(
+                    description = "Uploading the document.",
+                    required = true,
+                    example = "TestingDocs") @RequestParam("documents") List<MultipartFile> documents) {
         logger.info("ClaimController::uploadClaimDocument execution starting");
         List<Document> docValue = null;
         try {

@@ -6,6 +6,7 @@ import jakarta.persistence.EntityNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.example.dto.CustomerResponse;
 import org.example.exception.CustomerNotFoundException;
+import org.example.exception.FeignException;
 import org.example.model.CustomerEducation;
 import org.example.model.CustomerProfilePhoto;
 import org.example.model.CustomerServiceModel;
@@ -46,10 +47,36 @@ public class CustomerServiceController {
         return ResponseEntity.ok().body("Customer Service Initiated!");
     }
 
+    @GetMapping("/callProcedure")
+    public String callProcedure(@RequestParam String input) {
+        return customerService.callSimpleProcedure(input);
+    }
+
+    @GetMapping("/callCustomerListProcedure")
+    public ResponseEntity<List<CustomerServiceModel>> callCustomerListProcedure() {
+        List<CustomerServiceModel> customerList = customerService.callCustomerProcedure();
+        return new ResponseEntity<>(customerList,HttpStatus.OK);
+    }
+
     @GetMapping("/customerList")
     public ResponseEntity<List<CustomerServiceModel>> getAllCustomer(){
         List<CustomerServiceModel> customerList = customerService.getAllCustomer();
         return ResponseEntity.ok().body(customerList);
+    }
+
+    @GetMapping("/feignException")
+    public ResponseEntity<String> getFeignException(@RequestParam("name") String feignName) throws FeignException {
+        String feignResponse = customerService.feignExceptionProg(feignName);
+
+        // Check if the response contains an error message
+        if (feignResponse.startsWith("An error occurred")) {
+            // Return a 500 status code for errors
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(feignResponse);
+        }
+
+        log.info(feignName);
+        // Return 200 OK for successful responses
+        return ResponseEntity.ok().body(feignResponse);
     }
 
     @GetMapping("/customer-response")
@@ -127,6 +154,18 @@ public class CustomerServiceController {
         }catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to profile picture.");
         }
+    }
+
+    /// Submitting a new customer via calling stored procedure from DB
+    @PostMapping("/addCustomer-storedProcedure")
+    public ResponseEntity<String> addCustomer(
+                            @RequestParam String firstName,
+                            @RequestParam String lastName,
+                            @RequestParam String email,
+                            @RequestParam String phoneNumber,
+                            @RequestParam String address) {
+        customerService.insertCustomer(firstName, lastName, email, phoneNumber, address);
+        return new ResponseEntity<>("Customer added successfully!",HttpStatus.OK);
     }
 
     ///Retrieving and displaying back to the UI the submitted image/picture

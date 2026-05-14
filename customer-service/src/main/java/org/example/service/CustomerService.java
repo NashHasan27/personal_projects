@@ -1,6 +1,7 @@
 package org.example.service;
 
 import org.example.dto.CustomerResponse;
+import org.example.exception.FeignException;
 import org.example.model.CustomerEducation;
 import org.example.model.CustomerProfilePhoto;
 import org.example.model.CustomerServiceModel;
@@ -26,4 +27,14 @@ public interface CustomerService {
     CustomerEducation updateCustomerEducation(Long id,CustomerEducation customerEducation) throws Exception;
     List<CustomerEducation> getTop3EducationBy(String by);
     CustomerResponse getCustomerResponseById(Long id);
+    String feignExceptionProg(String feignName) throws FeignException;
+
+    //Invoking a stored procedure
+    String callSimpleProcedure(String input);
+
+    //Invoking an insert transaction via stored procedure
+    void insertCustomer(String firstName, String lastName, String email, String phoneNumber, String address);
+
+    //Invoking a stored procedure -> GETALLCUSTOMERS from DB that will return the lists of all submitted customer data
+    List<CustomerServiceModel> callCustomerProcedure();
 }
