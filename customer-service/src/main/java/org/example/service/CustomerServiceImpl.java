@@ -475,14 +475,28 @@ public class CustomerServiceImpl implements CustomerService {
     }
 
     private static CustomerEducation getCustomerEducation(Long id, CustomerEducation customerEducation) {
-        CustomerEducation customerEducationInfo = new CustomerEducation();
+        /// Boilerplate concept of building objects & dataset
+        /*CustomerEducation customerEducationInfo = new CustomerEducation();
         customerEducationInfo.setCustomerId(id);
         customerEducationInfo.setEducationName(customerEducation.getEducationName());
         customerEducationInfo.setEducationDescription(customerEducation.getEducationDescription());
         customerEducationInfo.setStartDate(customerEducation.getStartDate());
         customerEducationInfo.setEndDate(customerEducation.getEndDate());
-        customerEducationInfo.setEducationStatus(customerEducation.getEducationStatus());
-        return customerEducationInfo;
+        customerEducationInfo.setEducationStatus(customerEducation.getEducationStatus());*/
+
+        /// Using builder pattern to instantiate data to eliminate boilerplate and repetitive code
+        CustomerEducation customerEdu = CustomerEducation.builder()
+                .customerId(id)
+                .educationName(customerEducation.getEducationName())
+                .educationDescription(customerEducation.getEducationDescription())
+                .startDate(customerEducation.getStartDate())
+                .endDate(customerEducation.getEndDate())
+                .educationStatus(customerEducation.getEducationStatus())
+                .build();
+
+        logger.info("Implementing Builder build updated flow");
+
+        return customerEdu;
     }
 
     @Override
